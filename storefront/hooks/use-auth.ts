@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { medusaClient } from '@/lib/medusa-client'
+import { getMedusaClient } from '@/lib/medusa-client'
 import { useRouter } from 'next/navigation'
 
 const AUTH_TOKEN_KEY = 'medusa_auth_token'
@@ -32,7 +32,7 @@ export function useAuth() {
     queryKey: ['customer'],
     queryFn: async () => {
       try {
-        const { customer } = await medusaClient.store.customer.retrieve()
+        const { customer } = await getMedusaClient().store.customer.retrieve()
         return customer
       } catch (error: any) {
         // If 401/unauthorized, clear stale token so we don't keep retrying
@@ -49,7 +49,7 @@ export function useAuth() {
   // Login
   const login = useMutation({
     mutationFn: async ({ email, password }: { email: string; password: string }) => {
-      const token = await medusaClient.auth.login('customer', 'emailpass', {
+      const token = await getMedusaClient().auth.login('customer', 'emailpass', {
         email,
         password,
       })
@@ -59,7 +59,7 @@ export function useAuth() {
       }
 
       // SDK stores token in localStorage automatically (configured in medusa-client.ts)
-      const { customer } = await medusaClient.store.customer.retrieve()
+      const { customer } = await getMedusaClient().store.customer.retrieve()
       return customer
     },
     onSuccess: (customer) => {
@@ -83,45 +83,46 @@ export function useAuth() {
       first_name: string
       last_name: string
     }) => {
-      // Step 1: Create auth identity
+      const client = getMedusaClient()
+
+      // Step 1: Create auth identity — returns a token with empty actor_id
       try {
-        await medusaClient.auth.register('customer', 'emailpass', {
+        await client.auth.register('customer', 'emailpass', {
           email,
           password,
         })
       } catch (error: any) {
-        // If identity exists, that's fine — we'll login next
+        // If identity exists, login instead
+        if (error?.message?.includes('exists') || error?.status === 422) {
+          await client.auth.login('customer', 'emailpass', { email, password })
+          const { customer } = await client.store.customer.retrieve()
+          return customer
+        }
+        throw error
+      }
+
+      // Step 2: Create customer record (links customer to auth identity)
+      try {
+        await client.store.customer.create({
+          first_name,
+          last_name,
+          email,
+        })
+      } catch (error: any) {
+        // Customer may already exist (guest checkout) — that's fine
         if (!error?.message?.includes('exists') && error?.status !== 422) {
           throw error
         }
       }
 
-      // Step 2: Login to get JWT token (register doesn't return a token)
-      const token = await medusaClient.auth.login('customer', 'emailpass', {
-        email,
-        password,
-      })
-
-      if (typeof token !== 'string') {
-        throw new Error('Unexpected auth response after registration')
-      }
-
-      // Step 3: Create customer record (token is now in localStorage via SDK)
-      try {
-        const { customer } = await medusaClient.store.customer.create({
-          first_name,
-          last_name,
-          email,
-        })
-        return customer
-      } catch (error: any) {
-        // Customer record may already exist (e.g., guest checkout created it)
-        if (error?.status === 422 || error?.message?.includes('exists')) {
-          const { customer } = await medusaClient.store.customer.retrieve()
-          return customer
-        }
-        throw error
-      }
+      // Step 3: Login AGAIN to get a token with the correct actor_id
+      // The register token has actor_id="" which makes all authenticated
+      // endpoints return "Unauthorized". After customer.create() links
+      // the customer to the auth identity, login returns a token with
+      // actor_id=customer_id which works for orders, addresses, etc.
+      await client.auth.login('customer', 'emailpass', { email, password })
+      const { customer } = await client.store.customer.retrieve()
+      return customer
     },
     onSuccess: (customer) => {
       queryClient.setQueryData(['customer'], customer)
@@ -134,7 +135,7 @@ export function useAuth() {
   const logout = useMutation({
     mutationFn: async () => {
       try {
-        await medusaClient.auth.logout()
+        await getMedusaClient().auth.logout()
       } catch {
         // Even if API call fails, clear local state
       }

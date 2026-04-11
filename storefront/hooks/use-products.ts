@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { medusaClient } from '@/lib/medusa-client'
+import { getMedusaClient } from '@/lib/medusa-client'
 import { useRegion } from './use-region'
 
 interface UseProductsOptions {
@@ -20,7 +20,7 @@ export function useProducts(options: UseProductsOptions = {}) {
     queryFn: async () => {
       if (!regionId) throw new Error('No region available')
 
-      const response = await medusaClient.store.product.list({
+      const response = await getMedusaClient().store.product.list({
         limit: options.limit || 100,
         offset: options.offset || 0,
         q: options.q || undefined,

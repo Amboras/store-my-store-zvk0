@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery } from '@tanstack/react-query'
-import { medusaClient } from '@/lib/medusa-client'
+import { getMedusaClient } from '@/lib/medusa-client'
 import AccountLayout from '@/components/account/account-layout'
 import Link from 'next/link'
 import { Package, Loader2 } from 'lucide-react'
@@ -11,7 +11,7 @@ export default function OrdersPage() {
   const { data, isLoading } = useQuery({
     queryKey: ['orders'],
     queryFn: async () => {
-      const response = await medusaClient.store.order.list()
+      const response = await getMedusaClient().store.order.list()
       return response.orders
     },
     retry: false,

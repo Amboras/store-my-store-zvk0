@@ -1,7 +1,7 @@
 'use client'
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { medusaClient } from '@/lib/medusa-client'
+import { getMedusaClient } from '@/lib/medusa-client'
 
 const CART_ID_KEY = 'medusa_cart_id'
 
@@ -30,7 +30,7 @@ export function useCart() {
 
       if (cartId) {
         try {
-          const response = await medusaClient.store.cart.retrieve(cartId)
+          const response = await getMedusaClient().store.cart.retrieve(cartId)
           return response.cart
         } catch (error) {
           console.log('Cart not found, creating new one')
@@ -39,7 +39,7 @@ export function useCart() {
       }
 
       // Get region to create cart with
-      const regionsResponse = await medusaClient.store.region.list()
+      const regionsResponse = await getMedusaClient().store.region.list()
       const regionId = regionsResponse.regions[0]?.id
 
       if (!regionId) {
@@ -48,7 +48,7 @@ export function useCart() {
 
       try {
         // Try creating cart with region_id
-        const response = await medusaClient.store.cart.create({
+        const response = await getMedusaClient().store.cart.create({
           region_id: regionId,
         })
         const newCart = response.cart
@@ -72,7 +72,7 @@ export function useCart() {
     mutationFn: async ({ variantId, quantity }: { variantId: string; quantity: number }) => {
       if (!cart) throw new Error('No cart available')
 
-      const response = await medusaClient.store.cart.createLineItem(cart.id, {
+      const response = await getMedusaClient().store.cart.createLineItem(cart.id, {
         variant_id: variantId,
         quantity,
       })
@@ -80,6 +80,7 @@ export function useCart() {
     },
     onSuccess: (updatedCart) => {
       queryClient.setQueryData(['cart'], updatedCart)
+      queryClient.invalidateQueries({ queryKey: ['cart'] })
     },
     onError: (error) => {
       console.error('Error adding item to cart:', error)
@@ -90,13 +91,14 @@ export function useCart() {
     mutationFn: async ({ lineId, quantity }: { lineId: string; quantity: number }) => {
       if (!cart) throw new Error('No cart available')
 
-      const response = await medusaClient.store.cart.updateLineItem(cart.id, lineId, {
+      const response = await getMedusaClient().store.cart.updateLineItem(cart.id, lineId, {
         quantity,
       })
       return response.cart
     },
     onSuccess: (updatedCart) => {
       queryClient.setQueryData(['cart'], updatedCart)
+      queryClient.invalidateQueries({ queryKey: ['cart'] })
     },
   })
 
@@ -105,11 +107,12 @@ export function useCart() {
     mutationFn: async (lineId: string) => {
       if (!cart) throw new Error('No cart available')
 
-      const response = await medusaClient.store.cart.deleteLineItem(cart.id, lineId)
+      const response = await getMedusaClient().store.cart.deleteLineItem(cart.id, lineId)
       return response.parent // CORRECT: Use parent, not cart
     },
     onSuccess: (updatedCart) => {
       queryClient.setQueryData(['cart'], updatedCart)
+      queryClient.invalidateQueries({ queryKey: ['cart'] })
     },
   })
 
@@ -117,13 +120,14 @@ export function useCart() {
     mutationFn: async (code: string) => {
       if (!cart) throw new Error('No cart available')
       const existingCodes = (cart.promotions || []).map((p: any) => p.code)
-      const response = await medusaClient.store.cart.update(cart.id, {
+      const response = await getMedusaClient().store.cart.update(cart.id, {
         promo_codes: [...existingCodes, code.trim().toUpperCase()],
       })
       return response.cart
     },
     onSuccess: (updatedCart) => {
       queryClient.setQueryData(['cart'], updatedCart)
+      queryClient.invalidateQueries({ queryKey: ['cart'] })
     },
   })
 
@@ -131,13 +135,14 @@ export function useCart() {
     mutationFn: async (code: string) => {
       if (!cart) throw new Error('No cart available')
       const existingCodes = (cart.promotions || []).map((p: any) => p.code)
-      const response = await medusaClient.store.cart.update(cart.id, {
+      const response = await getMedusaClient().store.cart.update(cart.id, {
         promo_codes: existingCodes.filter((c: string) => c !== code),
       })
       return response.cart
     },
     onSuccess: (updatedCart) => {
       queryClient.setQueryData(['cart'], updatedCart)
+      queryClient.invalidateQueries({ queryKey: ['cart'] })
     },
   })
 

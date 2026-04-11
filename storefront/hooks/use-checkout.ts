@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
-import { medusaClient } from '@/lib/medusa-client'
+import { getMedusaClient } from '@/lib/medusa-client'
 import { useCart } from './use-cart'
 import { useStripeConfig } from './use-stripe-config'
 
@@ -41,7 +41,7 @@ export function useCheckout() {
     queryKey: ['shipping-options', cart?.id],
     queryFn: async () => {
       if (!cart?.id) return []
-      const { shipping_options } = await medusaClient.store.fulfillment.listCartOptions({
+      const { shipping_options } = await getMedusaClient().store.fulfillment.listCartOptions({
         cart_id: cart.id,
       })
       return shipping_options || []
@@ -57,14 +57,14 @@ export function useCheckout() {
 
     try {
       // Save address first (required before adding shipping method)
-      await medusaClient.store.cart.update(cart.id, {
+      await getMedusaClient().store.cart.update(cart.id, {
         email,
         shipping_address: address,
         billing_address: address,
       })
 
       // Set shipping method — only update cart cache once, after final call
-      const { cart: finalCart } = await medusaClient.store.cart.addShippingMethod(cart.id, {
+      const { cart: finalCart } = await getMedusaClient().store.cart.addShippingMethod(cart.id, {
         option_id: shippingOptionId,
       })
       queryClient.setQueryData(['cart'], finalCart)
@@ -89,7 +89,7 @@ export function useCheckout() {
         ? 'pp_stripe-connect_stripe-connect'
         : 'pp_system_default'
 
-      const response = await medusaClient.store.payment.initiatePaymentSession(cart, {
+      const response = await getMedusaClient().store.payment.initiatePaymentSession(cart, {
         provider_id: providerId,
       })
 
@@ -122,12 +122,12 @@ export function useCheckout() {
 
     try {
       if (!stripeConfig.paymentReady) {
-        await medusaClient.store.payment.initiatePaymentSession(cart, {
+        await getMedusaClient().store.payment.initiatePaymentSession(cart, {
           provider_id: 'pp_system_default',
         })
       }
 
-      const result = await medusaClient.store.cart.complete(cart.id)
+      const result = await getMedusaClient().store.cart.complete(cart.id)
 
       if (result?.type === 'order') {
         if (typeof window !== 'undefined') {

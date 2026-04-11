@@ -4,7 +4,7 @@ import { useState, Suspense } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { ArrowLeft, Mail, Loader2 } from 'lucide-react'
-import { medusaClient } from '@/lib/medusa-client'
+import { getMedusaClient } from '@/lib/medusa-client'
 import { toast } from 'sonner'
 
 function ForgotPasswordForm() {
@@ -20,7 +20,7 @@ function ForgotPasswordForm() {
     setLoading(true)
 
     try {
-      await medusaClient.auth.resetPassword('customer', 'emailpass', {
+      await getMedusaClient().auth.resetPassword('customer', 'emailpass', {
         identifier: email,
       })
     } catch {
