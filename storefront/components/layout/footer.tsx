@@ -6,14 +6,14 @@ import { usePolicies } from '@/hooks/use-policies'
 
 const footerLinks = {
   shop: [
-    { label: 'All Products', href: '/products' },
-    { label: 'New Arrivals', href: '/products?sort=newest' },
-    { label: 'Collections', href: '/collections' },
+    { label: 'Alle Produkte', href: '/products' },
+    { label: 'Neuheiten', href: '/products?sort=newest' },
+    { label: 'Kollektionen', href: '/collections' },
   ],
   help: [
     { label: 'FAQ', href: '/faq' },
-    { label: 'Shipping & Returns', href: '/shipping' },
-    { label: 'Contact Us', href: '/contact' },
+    { label: 'Versand & Rücksendungen', href: '/shipping' },
+    { label: 'Kontakt', href: '/contact' },
   ],
 }
 
@@ -46,13 +46,12 @@ export default function Footer() {
         <div className="grid grid-cols-1 gap-10 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand */}
           <div className="lg:col-span-1">
-            <Link href="/" className="inline-block">
-              <span className="font-heading text-2xl font-semibold">
-                Store
-              </span>
+            <Link href="/" className="inline-flex items-center gap-1">
+              <span className="font-heading text-2xl font-semibold tracking-[0.02em]">TM</span>
+              <span className="font-heading text-2xl font-light tracking-[0.2em] text-muted-foreground">Styles</span>
             </Link>
             <p className="mt-4 text-sm text-muted-foreground leading-relaxed max-w-xs">
-              Curated products crafted with care. Quality you can feel, design you can see.
+              Premium Haarstyling — gefertigt mit Präzision, inspiriert von zeitloser Eleganz. Entdecke die Kraft moderner Pflege in Schwarz & Weiß.
             </p>
           </div>
 
@@ -101,8 +100,8 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div className="mt-12 pt-8 border-t flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-muted-foreground">
-            &copy; {new Date().getFullYear()} Store. All rights reserved.
+          <p className="text-xs text-muted-foreground tracking-wider">
+            &copy; {new Date().getFullYear()} TMStyles. Alle Rechte vorbehalten.
           </p>
           <div className="flex items-center gap-6">
             <button

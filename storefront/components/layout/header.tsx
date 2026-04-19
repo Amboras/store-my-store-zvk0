@@ -81,27 +81,36 @@ export default function Header() {
             </button>
 
             {/* Logo */}
-            <Link href="/" className="flex items-center gap-2">
-              <span className="font-heading text-2xl font-semibold tracking-tight">
-                Store
+            <Link href="/" className="group flex items-center gap-1 select-none">
+              <span className="font-heading text-2xl font-semibold tracking-[0.02em] transition-transform duration-500 group-hover:-translate-x-0.5">
+                TM
+              </span>
+              <span className="font-heading text-2xl font-light tracking-[0.2em] text-muted-foreground transition-all duration-500 group-hover:text-foreground group-hover:tracking-[0.3em]">
+                Styles
               </span>
             </Link>
 
             {/* Desktop Navigation */}
             <nav className="hidden lg:flex items-center gap-8">
-              <Link href="/products" className="text-sm tracking-wide uppercase link-underline py-1" prefetch={true}>
-                Shop All
+              <Link href="/products" className="text-xs tracking-[0.2em] uppercase link-underline py-1" prefetch={true}>
+                Shop
               </Link>
               {collections?.slice(0, 4).map((collection: any) => (
                 <Link
                   key={collection.id}
                   href={`/collections/${collection.handle}`}
-                  className="text-sm tracking-wide uppercase link-underline py-1"
+                  className="text-xs tracking-[0.2em] uppercase link-underline py-1"
                   prefetch={true}
                 >
                   {collection.title}
                 </Link>
               ))}
+              <Link href="/about" className="text-xs tracking-[0.2em] uppercase link-underline py-1" prefetch={true}>
+                Story
+              </Link>
+              <Link href="/contact" className="text-xs tracking-[0.2em] uppercase link-underline py-1" prefetch={true}>
+                Kontakt
+              </Link>
             </nav>
 
             {/* Actions */}
@@ -153,7 +162,7 @@ export default function Header() {
             className="absolute inset-y-0 left-0 w-80 max-w-[85vw] bg-background animate-slide-in-right"
           >
             <div className="flex items-center justify-between p-4 border-b">
-              <span className="font-heading text-xl font-semibold">Menu</span>
+              <span className="font-heading text-xl font-semibold tracking-[0.1em]">TM<span className="font-light text-muted-foreground">Styles</span></span>
               <button
                 ref={mobileMenuCloseRef}
                 onClick={() => setIsMobileMenuOpen(false)}
